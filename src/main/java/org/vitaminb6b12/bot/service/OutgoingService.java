@@ -6,6 +6,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.vitaminb6b12.bot.model.OutgoingMessage;
 
+/**
+ * This service is used to make a POST request to Facebook servers which will
+ * result in the message reply
+ * 
+ * @author anand
+ *
+ */
 @Service
 public class OutgoingService {
 
@@ -17,6 +24,7 @@ public class OutgoingService {
 
 	public void sendMessage(OutgoingMessage outgoingMessage) {
 		RestTemplate rt = new RestTemplate();
+		LOGGER.info("Sending: " + outgoingMessage);
 		Object postForObject = rt.postForObject(SENDING_URL, outgoingMessage, Object.class);
 		LOGGER.info("Message successfully sent: " + postForObject);
 	}

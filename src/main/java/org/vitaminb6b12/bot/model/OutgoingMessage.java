@@ -4,8 +4,9 @@ public class OutgoingMessage {
 	private UserID recipient;
 	private TextMessage message;
 
-	public OutgoingMessage() {}
-	
+	public OutgoingMessage() {
+	}
+
 	public UserID getRecipient() {
 		return recipient;
 	}
@@ -21,10 +22,9 @@ public class OutgoingMessage {
 	public void setMessage(TextMessage message) {
 		this.message = message;
 	}
-	
-	
+
 	@Override
 	public String toString() {
-		return "OutgoingMessage [ receipient="+this.recipient+", message="+this.message+" ]";
+		return "OutgoingMessage [ receipient=" + this.recipient + ", message=" + this.message + " ]";
 	}
 }

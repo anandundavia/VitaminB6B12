@@ -10,6 +10,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.vitaminb6b12.bot.model.IncomingMessage;
 import org.vitaminb6b12.bot.service.CoreService;
 
+/**
+ * This controller is used to receive POST calls from the Facebook servers
+ * whenever there is some incoming message to the bot. The endpoint
+ * <code>/verify</code> will be called with a POST request and relevant data in
+ * case of incoming message
+ * 
+ * @author anand
+ *
+ */
 @RestController
 public class IncomingMessageController {
 
@@ -22,4 +31,3 @@ public class IncomingMessageController {
 		coreService.handleIncomingMessage(incomingMessage);
 	}
 }
-	
