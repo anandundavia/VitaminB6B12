@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.vitaminb6b12.bot.model.OutgoingMessage;
+import org.vitaminb6b12.bot.model.OutgoingMessaging;
 
 /**
  * This service is used to make a POST request to Facebook servers which will
@@ -22,7 +22,7 @@ public class OutgoingService {
 	private static final String SENDING_URL = "https://graph.facebook.com/v2.6/me/messages?access_token="
 			+ PAGE_ACCESS_TOKEN;
 
-	public void sendMessage(OutgoingMessage outgoingMessage) {
+	public void sendMessage(OutgoingMessaging outgoingMessage) {
 		RestTemplate rt = new RestTemplate();
 		LOGGER.info("Sending: " + outgoingMessage);
 		Object postForObject = rt.postForObject(SENDING_URL, outgoingMessage, Object.class);

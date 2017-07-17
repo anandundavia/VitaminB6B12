@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class TextMessage {
+public class TextMessage extends OutgoingMessage {
 	private String text;
 	@JsonProperty("quick_replies")
 	private List<QuickReplyOption> quickReplies;
