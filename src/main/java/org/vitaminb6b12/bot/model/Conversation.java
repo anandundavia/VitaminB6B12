@@ -2,9 +2,11 @@ package org.vitaminb6b12.bot.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import ai.api.model.AIResponse;
 
+@Document(collection = "conversations")
 public class Conversation {
 	@Id
 	@Indexed

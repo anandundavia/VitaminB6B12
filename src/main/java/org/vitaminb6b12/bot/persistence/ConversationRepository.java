@@ -6,5 +6,4 @@ import org.vitaminb6b12.bot.model.Conversation;
 
 @Repository
 public interface ConversationRepository extends MongoRepository<Conversation, Long> {
-
 }
