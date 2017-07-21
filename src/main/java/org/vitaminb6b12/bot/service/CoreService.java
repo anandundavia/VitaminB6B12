@@ -10,6 +10,7 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.vitaminb6b12.bot.model.AttachmentMessage;
+import org.vitaminb6b12.bot.model.Conversation;
 import org.vitaminb6b12.bot.model.Element;
 import org.vitaminb6b12.bot.model.GenericMessaging;
 import org.vitaminb6b12.bot.model.IncomingMessage;
@@ -22,6 +23,7 @@ import org.vitaminb6b12.bot.model.Payload;
 import org.vitaminb6b12.bot.model.PostbackMessaging;
 import org.vitaminb6b12.bot.model.QuickReplyOption;
 import org.vitaminb6b12.bot.model.TextMessage;
+import org.vitaminb6b12.bot.persistence.ConversationRepository;
 
 import ai.api.AIServiceException;
 import ai.api.model.AIOutputContext;
@@ -40,16 +42,27 @@ public class CoreService {
 	// Following variables are used to match the context type from the bot
 	private static final String ASK_DELIVERY_TYPE_CONTEXT = "send_package_dialog_params_delivery_type";
 	private static final String ASK_PICKUP_TYPE_CONTEXT = "send_package_dialog_params_pickup_type";
+	private static final String ASK_INQUIRY_TYPE_CONTEXT = "book_inquiry_dialog_params_inquiry_type";
 
+	// Following are the actions
 	private static final String GET_QUOTE_FINISHED = "get_quote";
 	private static final String GET_HELP_FINISHED = "smalltalk.agent.can_you_help";
+	private static final String BOOK_INQUIRY_FINISHED = "book_inquiry";
+	private static final String STORE_LOCATE_FINISHED = "locate_store";
+
+	// private static final String LENGTH_PARAM = "length";
+	// private static final String WIDTH_PARAM = "width";
+	// private static final String HEIGHT_PARAM = "height";
+	// private static final String WEIGHT_PARAM = "weight";
+	//
+	// private static final String ALLOWED_LENGTH_UNIT = "cm";
 
 	private static final String GET_STARTED_PAYLOAD = "vitaminb6b12_get_started";
 
 	private static final String GET_STARTED_MESSAGE = "I am the chatbot prepared by VitaminB6B12 team for UNITEDBYHCL hackathon!\n\n"
 			+ "I can help you in a few ways.\n"
 			+ "You can get estimated time and rate quote of your parcel. Say 'I want to get rate and time quote' and I will help you further\n"
-			+ "I can help you send your package! Say 'I want to send a package' if you want to do so\n\n"
+			+ "I can help you contact customer cate! Say 'I want have an inquiry' if you want to do so\n\n"
 			+ "I am always available for little chitchat ;)";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CoreService.class.getName());
@@ -63,6 +76,9 @@ public class CoreService {
 
 	@Autowired
 	private FacebookService fbService;
+
+	@Autowired
+	private ConversationRepository repository;
 
 	/**
 	 * It adds the incoming message in the process queue and returns ASAP. So
@@ -180,6 +196,8 @@ public class CoreService {
 						if (reply != null && !reply.getResult().isActionIncomplete()) {
 							// Yeah we had. Time to handle em
 							actionComplete(reply, outgoingMessage);
+							saveConversation(reply);
+
 						}
 					}
 
@@ -187,6 +205,49 @@ public class CoreService {
 			}
 
 		}
+
+		private void saveConversation(AIResponse reply) {
+			final String action = reply.getResult().getAction();
+			boolean save = false;
+			switch (action) {
+			case GET_QUOTE_FINISHED: {
+				save = true;
+				break;
+			}
+			case BOOK_INQUIRY_FINISHED: {
+				save = true;
+				break;
+			}
+			case STORE_LOCATE_FINISHED: {
+				save = true;
+				break;
+			}
+			}
+			if (save) {
+				final Conversation saveThis = new Conversation(reply);
+				repository.save(saveThis);
+				LOGGER.info("Successfully saved conversation with id: " + saveThis.getId());
+			}
+
+		}
+
+		// private void findAndValidateParams(AIResponse reply, TextMessage
+		// text) {
+		// final HashMap<String, JsonElement> parameters =
+		// reply.getResult().getParameters();
+		// if (parameters.containsKey(LENGTH_PARAM)) {
+		// JsonElement element = parameters.get(LENGTH_PARAM);
+		// JsonObject object = element.getAsJsonObject();
+		// System.out.println("Yeah! it has the length");
+		// String unit = object.get("unit").getAsString();
+		// } else if (parameters.containsKey(WIDTH_PARAM)) {
+		//
+		// } else if (parameters.containsKey(HEIGHT_PARAM)) {
+		//
+		// } else if (parameters.containsKey(WEIGHT_PARAM)) {
+		//
+		// }
+		// }
 
 		private void handlePayload(TextMessage text, PostbackMessaging message) {
 			final String payload = message.getPostback().getPayload();
@@ -226,7 +287,9 @@ public class CoreService {
 
 				final Payload payload = new Payload();
 				payload.setTemplateType("list");
-				payload.setTopElementStyle("compact");
+				payload.setTopElementStyle("compact"); // Well if you don't do
+														// this, then the first
+														// element look ugly
 				payload.setElements(elements);
 
 				final OutgoingAttachment outAttachment = new OutgoingAttachment();
@@ -241,6 +304,37 @@ public class CoreService {
 				final TextMessage msg = new TextMessage();
 				msg.setText(GET_STARTED_MESSAGE);
 				outgoingMessage.setMessage(msg);
+				outgoingService.sendMessage(outgoingMessage);
+				break;
+			}
+			case BOOK_INQUIRY_FINISHED: {
+				break;
+			}
+			case STORE_LOCATE_FINISHED: {
+				final AttachmentMessage attachment = new AttachmentMessage();
+				int onlineCost = ((int) (1000000 * Math.random()) % 12211) + 159;
+				final Element shipOnline = new Element("Ship online. Cost: " + onlineCost + "Rs.",
+						"Ship online and schedule a courier to pick up your parcel at your home or office",
+						"https://www.mydhl.dhl.com/content/dam/Local_Images/g0/express/mydhl/shipping_click.png");
+
+				int dropoffCost = ((int) (1000000 * Math.random()) % 12211) + 127;
+				final Element dropOff = new Element("Drop off. Cost: " + dropoffCost + "Rs.",
+						"An easy way to send documents and parcels – just drop off your parcel at the nearest DHL Service Point.",
+						"https://www.mydhl.dhl.com/content/dam/Local_Images/g0/express/mydhl/shipping_walk.png");
+
+				final ArrayList<Element> elements = new ArrayList<>();
+				elements.add(shipOnline);
+				elements.add(dropOff);
+
+				final Payload payload = new Payload();
+				payload.setTemplateType("list");
+				payload.setTopElementStyle("compact");
+				payload.setElements(elements);
+
+				final OutgoingAttachment outAttachment = new OutgoingAttachment();
+				outAttachment.setPayload(payload);
+				attachment.setAttachment(outAttachment);
+				outgoingMessage.setMessage(attachment);
 				outgoingService.sendMessage(outgoingMessage);
 				break;
 			}
@@ -277,6 +371,26 @@ public class CoreService {
 					text.addQuickReplyOption(international);
 					return;
 				}
+				case ASK_INQUIRY_TYPE_CONTEXT: {
+					final QuickReplyOption tracking = new QuickReplyOption("text", "Tracking", "Tracking");
+					final QuickReplyOption service = new QuickReplyOption("text", "Service", "Service");
+					final QuickReplyOption website = new QuickReplyOption("text", "Website", "Website");
+					final QuickReplyOption technical = new QuickReplyOption("text", "Technical", "Technical");
+					final QuickReplyOption sales = new QuickReplyOption("text", "Sales", "Sales");
+					final QuickReplyOption complaint = new QuickReplyOption("text", "Complaint", "Complaint");
+					final QuickReplyOption other = new QuickReplyOption("text", "Other", "Other");
+
+					text.addQuickReplyOption(tracking);
+					text.addQuickReplyOption(service);
+					text.addQuickReplyOption(website);
+					text.addQuickReplyOption(technical);
+					text.addQuickReplyOption(sales);
+					text.addQuickReplyOption(complaint);
+					text.addQuickReplyOption(other);
+
+					break;
+				}
+
 				default: {
 
 				}

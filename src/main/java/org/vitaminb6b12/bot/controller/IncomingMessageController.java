@@ -31,9 +31,4 @@ public class IncomingMessageController {
 		coreService.handleIncomingMessage(incomingMessage);
 	}
 
-//	@RequestMapping(value = "/verify", method = RequestMethod.POST)
-//	@ResponseStatus(value = HttpStatus.OK)
-//	public void handleIncomingMessage(@RequestBody String incomingMessage) {
-//		System.out.println(incomingMessage);
-//	}
 }

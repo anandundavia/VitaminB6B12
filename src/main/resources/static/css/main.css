@@ -1,7 +1,7 @@
 .container {
 	background: black;
 	display: flex;
-	height: 800px;
+	height: 600px;
 	flex-direction: column;
 	
 	-webkit-box-align: center;
@@ -17,15 +17,17 @@
 	justify-content: center;
 }
 
-.title {
-	font-weight: bold;
-	font-size: 20px;
-	color: #3A639B;
-	width: 200px;
-	text-align: center;
-}
 
 .img {
-	margin-top:20px;
 	display: block;
+}
+
+.small {
+	margin-top:10px;
+	color: white;
+	font-size: 14px;
+}
+
+a {
+	color: #3A639B;
 }
