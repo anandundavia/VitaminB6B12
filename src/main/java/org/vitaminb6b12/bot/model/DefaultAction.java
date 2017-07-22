@@ -71,6 +71,11 @@ public class DefaultAction {
 		return fallbackUrl;
 	}
 
+	public void setURLs(String url) {
+		this.setUrl(url);
+		this.setFallbackUrl(url);
+	}
+
 	@Override
 	public String toString() {
 		return "DefaultAction [ type=" + this.type + ", url=" + this.url + ", messenger_extensions="

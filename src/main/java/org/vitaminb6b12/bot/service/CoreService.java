@@ -13,13 +13,14 @@ import org.vitaminb6b12.bot.model.AttachmentMessage;
 import org.vitaminb6b12.bot.model.Conversation;
 import org.vitaminb6b12.bot.model.Element;
 import org.vitaminb6b12.bot.model.GenericMessaging;
+import org.vitaminb6b12.bot.model.GenericPayload;
 import org.vitaminb6b12.bot.model.IncomingMessage;
 import org.vitaminb6b12.bot.model.Message;
 import org.vitaminb6b12.bot.model.Messaging;
 import org.vitaminb6b12.bot.model.OutgoingAttachment;
 import org.vitaminb6b12.bot.model.OutgoingMessaging;
 import org.vitaminb6b12.bot.model.PageEntry;
-import org.vitaminb6b12.bot.model.Payload;
+import org.vitaminb6b12.bot.model.ListPayload;
 import org.vitaminb6b12.bot.model.PostbackMessaging;
 import org.vitaminb6b12.bot.model.QuickReplyOption;
 import org.vitaminb6b12.bot.model.TextMessage;
@@ -49,6 +50,7 @@ public class CoreService {
 	private static final String GET_HELP_FINISHED = "smalltalk.agent.can_you_help";
 	private static final String BOOK_INQUIRY_FINISHED = "book_inquiry";
 	private static final String STORE_LOCATE_FINISHED = "locate_store";
+	private static final String GET_SIZE_GUIDE_FINISHED = "size_guide";
 
 	// private static final String LENGTH_PARAM = "length";
 	// private static final String WIDTH_PARAM = "width";
@@ -62,8 +64,8 @@ public class CoreService {
 	private static final String GET_STARTED_MESSAGE = "I am the chatbot prepared by VitaminB6B12 team for UNITEDBYHCL hackathon!\n\n"
 			+ "I can help you in a few ways.\n"
 			+ "You can get estimated time and rate quote of your parcel. Say 'I want to get rate and time quote' and I will help you further\n"
-			+ "I can help you contact customer cate! Say 'I want have an inquiry' if you want to do so\n\n"
-			+ "I am always available for little chitchat ;)";
+			+ "I can help you contact customer cate! Say 'I want have an inquiry' if you want to do so\n"
+			+ "If you need help with box sizes, say 'size help'\n\n" + "I am always available for little chitchat ;)";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CoreService.class.getName());
 	private static final TaskExecutor executor = new SimpleAsyncTaskExecutor();
@@ -79,6 +81,9 @@ public class CoreService {
 
 	@Autowired
 	private ConversationRepository repository;
+
+	@Autowired
+	private CurrencyService currencyService;
 
 	/**
 	 * It adds the incoming message in the process queue and returns ASAP. So
@@ -142,7 +147,7 @@ public class CoreService {
 								} else if (receivedMessage.getAttachments() != null) {
 									// We don't have stickers but we have
 									// attachments!
-									// TODO: You might want to customize the
+									// You might want to customize the
 									// type of the reply based on the
 									// attachment.
 									// For example "I wander what image is this"
@@ -218,7 +223,7 @@ public class CoreService {
 				save = true;
 				break;
 			}
-			case STORE_LOCATE_FINISHED: {
+			case GET_SIZE_GUIDE_FINISHED: {
 				save = true;
 				break;
 			}
@@ -270,14 +275,21 @@ public class CoreService {
 			final String action = reply.getResult().getAction();
 			switch (action) {
 			case GET_QUOTE_FINISHED: {
+
+				final String currency = reply.getResult().getParameters().get("currency").getAsString();
+				final float factor = currencyService.convert("INR", currency);
+
 				final AttachmentMessage attachment = new AttachmentMessage();
-				int onlineCost = ((int) (1000000 * Math.random()) % 12211) + 159;
-				final Element shipOnline = new Element("Ship online. Cost: " + onlineCost + "Rs.",
+
+				final int onlineCost = ((int) (5783 * Math.random()) % 5791) + 159;
+				final String onlineCostInCurrency = Float.toString(onlineCost * factor) + " " + currency;
+				final Element shipOnline = new Element("Ship online. Cost: " + onlineCostInCurrency,
 						"Ship online and schedule a courier to pick up your parcel at your home or office",
 						"https://www.mydhl.dhl.com/content/dam/Local_Images/g0/express/mydhl/shipping_click.png");
 
-				int dropoffCost = ((int) (1000000 * Math.random()) % 12211) + 127;
-				final Element dropOff = new Element("Drop off. Cost: " + dropoffCost + "Rs.",
+				int dropoffCost = ((int) (5783 * Math.random()) % 5791) + 127;
+				final String dropCostInCurrency = Float.toString(dropoffCost * factor) + " " + currency;
+				final Element dropOff = new Element("Drop off. Cost: " + dropCostInCurrency,
 						"An easy way to send documents and parcels – just drop off your parcel at the nearest DHL Service Point.",
 						"https://www.mydhl.dhl.com/content/dam/Local_Images/g0/express/mydhl/shipping_walk.png");
 
@@ -285,7 +297,7 @@ public class CoreService {
 				elements.add(shipOnline);
 				elements.add(dropOff);
 
-				final Payload payload = new Payload();
+				final ListPayload payload = new ListPayload();
 				payload.setTemplateType("list");
 				payload.setTopElementStyle("compact"); // Well if you don't do
 														// this, then the first
@@ -311,24 +323,50 @@ public class CoreService {
 				break;
 			}
 			case STORE_LOCATE_FINISHED: {
+				break;
+			}
+			case GET_SIZE_GUIDE_FINISHED: {
 				final AttachmentMessage attachment = new AttachmentMessage();
-				int onlineCost = ((int) (1000000 * Math.random()) % 12211) + 159;
-				final Element shipOnline = new Element("Ship online. Cost: " + onlineCost + "Rs.",
-						"Ship online and schedule a courier to pick up your parcel at your home or office",
-						"https://www.mydhl.dhl.com/content/dam/Local_Images/g0/express/mydhl/shipping_click.png");
+				final Element envelope = new Element("Envelope 1", "Size: 27 x 35 x 2 CM, upto 0.5 KG",
+						"https://parcel.dhl.co.uk/repository/package_size/dhl_envelope_1_carousel_NEW.jpg",
+						"https://parcel.dhl.co.uk/dhl-service-point/size-and-price-guide");
 
-				int dropoffCost = ((int) (1000000 * Math.random()) % 12211) + 127;
-				final Element dropOff = new Element("Drop off. Cost: " + dropoffCost + "Rs.",
-						"An easy way to send documents and parcels – just drop off your parcel at the nearest DHL Service Point.",
-						"https://www.mydhl.dhl.com/content/dam/Local_Images/g0/express/mydhl/shipping_walk.png");
+				final Element box2 = new Element("Box 2", "Size: 34 x 18 x 10 CM, upto 1.5 KG",
+						"https://parcel.dhl.co.uk/repository/package_size/dhl_box_size_2_carousel_NEW.jpg",
+						"https://parcel.dhl.co.uk/dhl-service-point/size-and-price-guide");
+
+				final Element box3 = new Element("Box 3", "Size: 34 x 32 x 10 CM, upto 3 KG",
+						"https://parcel.dhl.co.uk/repository/package_size/dhl_box_size_3_carousel_NEW.jpg",
+						"https://parcel.dhl.co.uk/dhl-service-point/size-and-price-guide");
+
+				final Element box4 = new Element("Box 4", "Size: 34 x 32 x 18 CM, upto 7 KG",
+						"https://parcel.dhl.co.uk/repository/package_size/dhl_box_size_4_carousel_NEW.jpg",
+						"https://parcel.dhl.co.uk/dhl-service-point/size-and-price-guide");
+
+				final Element box5 = new Element("Box 5", "Size: 34 x 32 x 34 CM, upto 12 KG",
+						"https://parcel.dhl.co.uk/repository/package_size/dhl_box_size_5_carousel_NEW.jpg",
+						"https://parcel.dhl.co.uk/dhl-service-point/size-and-price-guide");
+
+				final Element box6 = new Element("Box 6", "Size: 42 x 36 x 37 CM, upto 18 KG",
+						"https://parcel.dhl.co.uk/repository/package_size/dhl_box_size_6_carousel_NEW.jpg",
+						"https://parcel.dhl.co.uk/dhl-service-point/size-and-price-guide");
+
+				final Element box7 = new Element("Box 7", "Size: 48 x 40 x 39 CM, upto 25 KG",
+						"https://parcel.dhl.co.uk/repository/package_size/dhl_box_size_7_carousel_NEW.jpg",
+						"https://parcel.dhl.co.uk/dhl-service-point/size-and-price-guide");
 
 				final ArrayList<Element> elements = new ArrayList<>();
-				elements.add(shipOnline);
-				elements.add(dropOff);
+				elements.add(envelope);
+				elements.add(box2);
+				elements.add(box3);
+				elements.add(box4);
+				elements.add(box5);
+				elements.add(box6);
+				elements.add(box7);
 
-				final Payload payload = new Payload();
-				payload.setTemplateType("list");
-				payload.setTopElementStyle("compact");
+				final GenericPayload payload = new GenericPayload();
+				payload.setTemplateType("generic");
+
 				payload.setElements(elements);
 
 				final OutgoingAttachment outAttachment = new OutgoingAttachment();

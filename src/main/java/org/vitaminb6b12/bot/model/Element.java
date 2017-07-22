@@ -21,6 +21,15 @@ public class Element {
 		this.defaultAction = DefaultAction.getInstance();
 	}
 
+	public Element(String title, String subtitle, String imageURL, String otherURL) {
+		super();
+		this.title = title;
+		this.subtitle = subtitle;
+		this.imageURL = imageURL;
+		this.defaultAction = DefaultAction.getInstance();
+		this.defaultAction.setURLs(otherURL);
+	}
+
 	public String getTitle() {
 		return title;
 	}

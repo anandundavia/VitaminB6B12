@@ -23,9 +23,13 @@ public class OutgoingService {
 			+ PAGE_ACCESS_TOKEN;
 
 	public void sendMessage(OutgoingMessaging outgoingMessage) {
-		RestTemplate rt = new RestTemplate();
-		LOGGER.info("Sending: " + outgoingMessage);
-		Object postForObject = rt.postForObject(SENDING_URL, outgoingMessage, Object.class);
-		LOGGER.info("Message successfully sent: " + postForObject);
+		try {
+			RestTemplate rt = new RestTemplate();
+			LOGGER.info("Sending: " + outgoingMessage);
+			Object postForObject = rt.postForObject(SENDING_URL, outgoingMessage, Object.class);
+			LOGGER.info("Message successfully sent: " + postForObject);
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+		}
 	}
 }
